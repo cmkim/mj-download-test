@@ -1,0 +1,5 @@
+__pycache__/
+
+# TODO. 추후 삭제. login_profile로 대체
+mj_profile/
+login_profile/
