@@ -11,7 +11,6 @@ DEFAULT_DOWNLOAD_DIR = os.path.join(_PROJECT_ROOT, "downloads", "MJ_Backups")
 
 def _get_save_path(download_dir: str) -> str:
     """날짜별 파일명 생성. 중복 시 (1), (2) 접미사 추가."""
-    download_dir = os.path.expanduser(download_dir)
     os.makedirs(download_dir, exist_ok=True)
     today = date.today().strftime("%Y%m%d")
     base = os.path.join(download_dir, f"MJ_Backup_{today}.zip")
@@ -26,15 +25,21 @@ def _get_save_path(download_dir: str) -> str:
 
 
 def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
-    """프로필 세션으로 미드저니에 접속하여 오늘 이미지를 zip으로 다운로드한다."""
+    """세션 JSON으로 미드저니에 접속하여 오늘 이미지를 zip으로 다운로드한다."""
+    session_file = os.path.join(_PROJECT_ROOT, "sessions", f"mj_{account_name}.json")
+
     with sync_playwright() as p:
-        browser = p.chromium.launch_persistent_context(
-            user_data_dir=os.path.join(_PROJECT_ROOT, "login_profile", f"mj_{account_name}"),
+        browser = p.chromium.launch(
             headless=False,
-            args=["--disable-blink-features=AutomationControlled", "--disable-crashpad", "--disable-crash-reporter", "--disable-gpu"],
-            ignore_default_args=["--enable-automation"],
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--disable-crashpad",
+                "--disable-crash-reporter",
+                "--disable-gpu",
+            ],
         )
-        page = browser.pages[0] if browser.pages else browser.new_page()
+        context = browser.new_context(storage_state=session_file)
+        page = context.new_page()
 
         try:
             print("미드저니 Organize 페이지 접속 중...")
@@ -70,4 +75,5 @@ def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
         except Exception as e:
             print(f"[오류] 실행 중 문제 발생: {e}")
         finally:
+            context.close()
             browser.close()

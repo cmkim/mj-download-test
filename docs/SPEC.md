@@ -3,9 +3,9 @@
 ## 공통 사항
 
 - 런타임: Python 3, Playwright (sync API)
-- 브라우저: Chromium (`launch_persistent_context`)
-- 프로필 경로: `login_profile/mj_{account_name}/`
-- 봇 감지 우회 플래그: `--disable-blink-features=AutomationControlled`, `ignore_default_args=["--enable-automation"]`
+- 브라우저: Chromium (`launch()` + `new_context()`)
+- 세션 관리: `storage_state` (JSON) — `sessions/mj_{account_name}.json`에 쿠키와 localStorage를 저장
+- 봇 감지 우회 플래그: `--disable-blink-features=AutomationControlled`
 - Crashpad 비활성화: `--disable-crashpad`, `--disable-crash-reporter` — 크래시 리포터를 비활성화하여 macOS에서 "예기치 않게 종료되었습니다" 오류 대화상자가 표시되지 않도록 한다
 - GPU 비활성화: `--disable-gpu` — GPU 하위 프로세스가 macOS 윈도우 서버 등록(`_RegisterApplication`) 중 크래시하는 문제를 방지한다. 소프트웨어 렌더링으로 전환됨
 - `_PROJECT_ROOT`: 각 스크립트에서 `os.path.dirname()` 체인으로 프로젝트 루트를 계산 (스크립트 위치 → 스킬 디렉토리 → skills → 프로젝트 루트)
@@ -57,8 +57,8 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 
 **파라미터**
 
-- `account_name` (str, 필수): 미드저니 계정명. 프로필은 `login_profile/mj_{account_name}/`에 저장된다.
-- `download_dir` (str, 선택, 3단계만 해당): 다운로드 파일 저장 디렉토리. 기본값 `~/Downloads/MJ_Backups`.
+- `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
+- `download_dir` (str, 선택, 3단계만 해당): 다운로드 파일 저장 디렉토리. 기본값 `{_PROJECT_ROOT}/downloads/MJ_Backups`.
 
 ## 스크립트
 
@@ -75,26 +75,25 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 
 ### `skills/mj_download/check_login.py`
 
-Chromium 프로필의 Cookies DB에서 미드저니 인증 쿠키의 존재 여부와 유효성을 확인한다.
+세션 JSON 파일에서 미드저니 인증 쿠키의 존재 여부와 유효성을 확인한다.
 
 | 항목 | 내용 |
 |------|------|
 | 함수 | `check_login(account_name: str) -> bool` |
-| 판단 기준 | `%Host-Midjourney.AuthUserToken%` 패턴의 쿠키가 존재하고 만료까지 24시간 이상 남아 있으면 `True` |
-| 만료 확인 | `expires_utc` (Chromium 타임스탬프: 1601-01-01 기준 마이크로초)를 Unix 시간으로 변환하여 잔여 시간 계산 |
-| DB 접근 | `sqlite3`로 읽기 전용(`?mode=ro`) 열기 |
-| 후보 경로 | `{profile}/Cookies`, `{profile}/Default/Cookies`, `{profile}/Default/Network/Cookies` |
-| 에러 처리 | `sqlite3.Error` 발생 시 다음 후보 경로로 시도 |
+| 세션 파일 | `sessions/mj_{account_name}.json` |
+| 판단 기준 | `AuthUserToken`을 포함하는 쿠키가 존재하고 만료까지 24시간 이상 남아 있으면 `True` |
+| 만료 확인 | 쿠키의 `expires` 필드 (Unix 타임스탬프)와 현재 시간을 비교 |
+| 에러 처리 | 파일 미존재, JSON 파싱 오류 시 `False` 반환 |
 
 ### `skills/mj_download/login.py`
 
-Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그인하도록 한다. 로그인 후 세션이 프로필 디렉토리에 저장된다.
+Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그인하도록 한다. 로그인 후 세션을 JSON으로 저장한다.
 
 | 항목 | 내용 |
 |------|------|
 | 함수 | `login(account_name: str)` |
-| 동작 | `midjourney.com/home` 페이지를 열고 60초 대기 후 브라우저 종료 |
-| 세션 저장 | `launch_persistent_context`가 브라우저 종료 시 프로필 디렉토리에 자동 저장 |
+| 동작 | `midjourney.com/home` 페이지를 열고 60초 대기 후 세션 저장 및 브라우저 종료 |
+| 세션 저장 | `context.storage_state(path=...)` 로 쿠키와 localStorage를 JSON 파일에 저장 |
 
 ### `skills/mj_download/download.py`
 
@@ -103,6 +102,7 @@ Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그
 | 항목 | 내용 |
 |------|------|
 | 함수 | `download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR)` |
+| 세션 로드 | `browser.new_context(storage_state=session_file)` 로 인증 상태 복원 |
 | 기본 다운로드 경로 | `{_PROJECT_ROOT}/downloads/MJ_Backups` |
 | 파일명 규칙 | `MJ_Backup_YYYYMMDD.zip`, 중복 시 `(1)`, `(2)` 접미사 |
 | 페이지 흐름 | `/organize` 접속 → "Today" 확인 → "Select all" → "Download" 클릭 |

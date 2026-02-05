@@ -12,9 +12,9 @@ description: 미드저니 오늘 이미지를 zip으로 일괄 다운로드합�
 
 | 스크립트 | 역할 |
 |----------|------|
-| `check_login.py` | 로그인 쿠키 존재 여부 확인 |
-| `login.py` | 브라우저를 열어 수동 로그인, 세션 저장 |
-| `download.py` | 오늘 이미지를 zip으로 다운로드 |
+| `check_login.py` | 세션 JSON의 인증 쿠키 유효성 확인 |
+| `login.py` | 브라우저를 열어 수동 로그인, 세션을 JSON으로 저장 |
+| `download.py` | 세션 JSON으로 인증하여 오늘 이미지를 zip으로 다운로드 |
 
 ## 실행 흐름
 
@@ -35,7 +35,7 @@ from skills.mj_download.login import login
 
 login(account_name="mj_account")
 # 브라우저가 열린다. 사용자에게 디스코드 계정으로 로그인하라고 안내한다.
-# 사용자가 로그인 후 브라우저를 닫으면 세션이 저장된다.
+# 60초 후 세션이 sessions/mj_{account_name}.json에 저장된다.
 ```
 
 ### 3단계: 다운로드
@@ -48,7 +48,7 @@ download(account_name="mj_account", download_dir="./downloads/MJ_Backups")
 ```
 
 ## 파라미터 (공통)
-- `account_name` (str, 필수): 미드저니 계정명. 프로필은 `login_profile/mj_{account_name}/`에 저장된다.
+- `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
 - `download_dir` (str, 선택, download만 해당): 다운로드 파일 저장 디렉토리. 기본값 `./downloads/MJ_Backups`.
 
 ## 결과 보고
