@@ -17,13 +17,14 @@ def login(account_name: str):
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,
+            headless=True,
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--disable-crashpad",
                 "--disable-crash-reporter",
                 "--disable-gpu",
             ],
+            ignore_default_args=["--enable-automation"],
         )
         context = browser.new_context()
         page = context.new_page()
