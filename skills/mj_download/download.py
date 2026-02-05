@@ -6,7 +6,7 @@ from datetime import date
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DEFAULT_DOWNLOAD_DIR = os.path.expanduser("~/Downloads/MJ_Backups")
+DEFAULT_DOWNLOAD_DIR = os.path.join(_PROJECT_ROOT, "downloads", "MJ_Backups")
 
 
 def _get_save_path(download_dir: str) -> str:
@@ -31,7 +31,7 @@ def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
         browser = p.chromium.launch_persistent_context(
             user_data_dir=os.path.join(_PROJECT_ROOT, "login_profile", f"mj_{account_name}"),
             headless=False,
-            args=["--disable-blink-features=AutomationControlled"],
+            args=["--disable-blink-features=AutomationControlled", "--disable-crashpad", "--disable-crash-reporter", "--disable-gpu"],
             ignore_default_args=["--enable-automation"],
         )
         page = browser.pages[0] if browser.pages else browser.new_page()
