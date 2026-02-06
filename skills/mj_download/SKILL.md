@@ -33,9 +33,11 @@ result = check_login(account_name="mj_account")
 ```python
 from skills.mj_download.login import login
 
-login(account_name="mj_account")
+result = login(account_name="mj_account")
 # 브라우저가 열린다. 사용자에게 디스코드 계정으로 로그인하라고 안내한다.
-# 60초 후 세션이 sessions/mj_{account_name}.json에 저장된다.
+# 로그인 완료 시 (/explore 페이지 이동 감지, 최대 2분) 세션이 sessions/mj_{account_name}.json에 저장된다.
+# True: 로그인 성공
+# False: 로그인 실패 (시간 초과 등)
 ```
 
 ### 3단계: 다운로드
@@ -43,8 +45,10 @@ login(account_name="mj_account")
 ```python
 from skills.mj_download.download import download
 
-download(account_name="mj_account", download_dir="./downloads/MJ_Backups")
+result = download(account_name="mj_account", download_dir="./downloads/MJ_Backups")
 # download_dir 기본값: ./downloads/MJ_Backups
+# True: 다운로드 성공
+# False: 다운로드 실패 (세션 파일 없음, 오늘 이미지 없음, 시간 초과 등)
 ```
 
 ## 파라미터 (공통)

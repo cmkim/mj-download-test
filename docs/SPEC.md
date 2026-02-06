@@ -93,9 +93,11 @@ Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그
 
 | 항목 | 내용 |
 |------|------|
-| 함수 | `login(account_name: str)` |
-| 동작 | `midjourney.com/home` 페이지를 열고 60초 대기 후 세션 저장 및 브라우저 종료 |
+| 함수 | `login(account_name: str) -> bool` |
+| 동작 | `midjourney.com/home` 페이지를 열고, 로그인 완료 시 (`/explore` 페이지 이동 감지, 최대 2분) 세션 저장 및 브라우저 종료 |
 | 세션 저장 | `context.storage_state(path=...)` 로 쿠키와 localStorage를 JSON 파일에 저장 |
+| 반환값 | 성공 시 `True`, 실패 시 `False` |
+| 에러 처리 | `PlaywrightTimeout` — 시간 초과, `Exception` — 일반 오류. 콘솔 출력 후 `False` 반환 |
 
 ### `skills/mj_download/download.py`
 
@@ -103,11 +105,13 @@ Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그
 
 | 항목 | 내용 |
 |------|------|
-| 함수 | `download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR)` |
+| 함수 | `download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR) -> bool` |
+| 세션 확인 | 세션 파일 존재 여부를 먼저 확인. 없으면 오류 메시지 출력 후 `False` 반환 |
 | 세션 로드 | `browser.new_context(storage_state=session_file)` 로 인증 상태 복원 |
 | 기본 다운로드 경로 | `{_PROJECT_ROOT}/downloads/MJ_Backups` |
 | 파일명 규칙 | `MJ_Backup_YYYYMMDD.zip`, 중복 시 `(1)`, `(2)` 접미사 |
 | 페이지 흐름 | `/organize` 접속 → "Today" `wait_for(state="visible")` (30초) → "Select all" → "Download" 클릭 |
 | 디버그 | "Today" 미발견 시 `debug_page.png` 스크린샷을 `download_dir`에 저장 |
-| 에러 처리 | context 생성·페이지 조작·다운로드 전 과정을 try 블록으로 감싸며, `PlaywrightTimeout` — 시간 초과, `Exception` — 일반 오류. 모두 콘솔 출력 후 브라우저 종료 |
+| 반환값 | 성공 시 `True`, 실패 시 `False` |
+| 에러 처리 | context 생성·페이지 조작·다운로드 전 과정을 try 블록으로 감싸며, `PlaywrightTimeout` — 시간 초과, `Exception` — 일반 오류. 콘솔 출력 후 `False` 반환 |
 | 내부 함수 | `_get_save_path(download_dir)` — 날짜별 파일명 생성 및 중복 처리 |
