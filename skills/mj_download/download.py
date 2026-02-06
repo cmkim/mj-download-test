@@ -28,12 +28,17 @@ def _get_save_path(download_dir: str) -> str:
         idx += 1
 
 
-def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
+def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR) -> bool:
     """세션 JSON으로 미드저니에 접속하여 오늘 이미지를 zip으로 다운로드한다."""
     print("미드저니 다운로드 스크립트 시작...")
     sys.stdout.flush()
 
     session_file = os.path.join(_PROJECT_ROOT, "sessions", f"mj_{account_name}.json")
+
+    if not os.path.exists(session_file):
+        print(f"[오류] 세션 파일이 없습니다: {session_file}")
+        print("먼저 로그인을 진행해 주세요.")
+        return False
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -71,7 +76,7 @@ def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
                 page.screenshot(path=screenshot_path)
                 print(f"[디버그] 페이지 스크린샷 저장: {screenshot_path}")
                 print("오늘 생성한 이미지가 없습니다 (No images found for today).")
-                return
+                return False
 
             print("이미지 전체 선택 중...")
             select_btn = page.locator("button", has_text="Select all").first
@@ -82,7 +87,7 @@ def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
             download_btn = page.locator("button", has_text="Download").first
             download_btn.wait_for(state="visible", timeout=10000)
 
-            with page.expect_download(timeout=60000) as download_info:
+            with page.expect_download(timeout=120000) as download_info:
                 download_btn.click()
 
             dl = download_info.value
@@ -90,11 +95,14 @@ def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR):
             dl.save_as(save_path)
             print(f"다운로드 완료: {save_path}")
             page.wait_for_timeout(3000)
+            return True
 
         except PlaywrightTimeout:
             print("[오류] 시간 초과 — 페이지 로딩 또는 다운로드가 지연되고 있습니다.")
+            return False
         except Exception as e:
             print(f"[오류] 실행 중 문제 발생: {e}")
+            return False
         finally:
             if context:
                 context.close()
