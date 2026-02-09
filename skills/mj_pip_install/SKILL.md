@@ -1,6 +1,6 @@
 ---
 name: mj-pip-install
-description: 미드저니 워크플로에 필요한 Playwright와 Chromium을 설치합니다.
+description: 미드저니 워크플로에 필요한 Playwright와 Chromium을 설치합니다. 최초 환경 설정 시 또는 Playwright가 설치되어 있지 않을 때 사용합니다.
 ---
 
 # Playwright + Chromium 설치

@@ -11,6 +11,8 @@
 - GPU 비활성화: `--disable-gpu` — GPU 하위 프로세스가 macOS 윈도우 서버 등록(`_RegisterApplication`) 중 크래시하는 문제를 방지한다. 소프트웨어 렌더링으로 전환됨
 - `_PROJECT_ROOT`: 각 스크립트에서 `os.path.dirname()` 체인으로 프로젝트 루트를 계산 (스크립트 위치 → 스킬 디렉토리 → skills → 프로젝트 루트)
 - 조기 출력 방어: 함수 진입 직후 `print()` + `sys.stdout.flush()` 로 즉시 출력을 내보내, 호출 측(Codex 등)이 응답 없음으로 판단하여 프로세스를 조기 종료하는 것을 방지
+- 스킬 디렉토리 네이밍: 스킬 이름은 케밥 케이스(`mj-download`)이지만, 디렉토리명은 언더스코어(`mj_download`)를 사용한다. Python이 하이픈을 모듈명에 허용하지 않기 때문이며, SKILL.md의 `name` 필드와 `AGENTS.md`의 스킬 이름에서 케밥 케이스를 유지한다
+- 스킬 디렉토리 레이아웃: 스크립트 파일을 `scripts/` 하위 폴더에 분리하지 않고 SKILL.md와 같은 디렉토리에 배치한다. 스킬당 스크립트가 1~2개로 적어 별도 폴더의 이점이 없고, 플랫 구조가 `from skills.mj_login.check_login import check_login` 형태의 Python import를 간결하게 유지한다
 
 ## 스킬
 
@@ -21,10 +23,12 @@ skills/
   mj_pip_install/          # 환경 설치 스킬
     SKILL.md
     install.py
-  mj_download/             # 미드저니 이미지 다운로드 스킬
+  mj_login/                # 로그인 확인 + 로그인 스킬
     SKILL.md
     check_login.py
     login.py
+  mj_download/             # 미드저니 이미지 다운로드 스킬
+    SKILL.md
     download.py
 ```
 
@@ -39,14 +43,14 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 | 실행 흐름 | `main()` 호출 → pip install → playwright install chromium |
 | 완료 후 | `mj-download` 스킬로 이미지를 다운로드할 수 있다고 안내 |
 
-### `mj-download`
+### `mj-login`
 
-로그인 확인 → 로그인(필요 시) → 오늘 이미지 다운로드를 하나의 흐름으로 처리하는 스킬. 세 개의 스크립트를 순서대로 조합하여 목적을 달성한다.
+로그인 상태를 확인하고, 필요 시 브라우저를 열어 디스코드 로그인을 진행하는 스킬.
 
 | 항목 | 내용 |
 |------|------|
-| 디렉토리 | `skills/mj_download/` |
-| 스크립트 | `check_login.py`, `login.py`, `download.py` |
+| 디렉토리 | `skills/mj_login/` |
+| 스크립트 | `check_login.py`, `login.py` |
 | 사전 조건 | Playwright 미설치 시 `mj-pip-install` 안내 후 중단 |
 
 **실행 흐름**
@@ -55,7 +59,28 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 |------|----------|-----------|------|
 | 1 | `check_login.py` | `check_login(account_name)` | 항상 실행 |
 | 2 | `login.py` | `login(account_name)` | 1단계에서 `False`일 때만 |
-| 3 | `download.py` | `download(account_name, download_dir)` | 항상 실행 |
+
+**파라미터**
+
+- `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
+
+### `mj-download`
+
+로그인 확인 → 로그인(필요 시) → 오늘 이미지 다운로드를 하나의 흐름으로 처리하는 스킬. `mj_login` 스킬의 스크립트와 자체 다운로드 스크립트를 순서대로 조합하여 목적을 달성한다.
+
+| 항목 | 내용 |
+|------|------|
+| 디렉토리 | `skills/mj_download/` (로그인 스크립트는 `skills/mj_login/` 참조) |
+| 스크립트 | `mj_login/check_login.py`, `mj_login/login.py`, `download.py` |
+| 사전 조건 | Playwright 미설치 시 `mj-pip-install` 안내 후 중단 |
+
+**실행 흐름**
+
+| 단계 | 스크립트 | 함수 호출 | 조건 |
+|------|----------|-----------|------|
+| 1 | `mj_login/check_login.py` | `check_login(account_name)` | 항상 실행 |
+| 2 | `mj_login/login.py` | `login(account_name)` | 1단계에서 `False`일 때만. 실패 시 중단 |
+| 3 | `download.py` | `download(account_name, download_dir)` | 1~2단계 성공 시 실행 |
 
 **파라미터**
 
@@ -75,7 +100,7 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 | 동작 | `pip install playwright` → `playwright install chromium` |
 | 의존성 | `subprocess`, `sys` (표준 라이브러리만 사용) |
 
-### `skills/mj_download/check_login.py`
+### `skills/mj_login/check_login.py`
 
 세션 JSON 파일에서 미드저니 인증 쿠키의 존재 여부와 유효성을 확인한다.
 
@@ -87,7 +112,7 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 | 만료 확인 | 쿠키의 `expires` 필드 (Unix 타임스탬프)와 현재 시간을 비교 |
 | 에러 처리 | 파일 미존재, JSON 파싱 오류 시 `False` 반환 |
 
-### `skills/mj_download/login.py`
+### `skills/mj_login/login.py`
 
 Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그인하도록 한다. 로그인 후 세션을 JSON으로 저장한다.
 

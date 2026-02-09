@@ -6,5 +6,6 @@
 
 ### 사용 가능한 스킬
 - mj-pip-install: Playwright와 Chromium을 설치합니다. (file: skills/mj_pip_install/SKILL.md)
+- mj-login: 미드저니 로그인 상태 확인 및 로그인을 처리합니다. (file: skills/mj_login/SKILL.md)
 - mj-download: 미드저니 로그인 확인 → 로그인 → 오늘 이미지 zip 일괄 다운로드를 처리합니다. (file: skills/mj_download/SKILL.md)
 </INSTRUCTIONS>

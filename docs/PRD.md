@@ -9,7 +9,8 @@ Playwright Chromium 전용 프로필(로그인 세션)을 활용하여 미드저
 
 ## 2. 워크플로
 1. **환경 준비** — `mj-pip-install`: Playwright + Chromium 설치 (최초 1회)
-2. **다운로드** — `mj-download(account_name, download_dir)`: 로그인 확인 → 로그인(필요 시) → 오늘 이미지 zip 다운로드
+2. **로그인** — `mj-login(account_name)`: 로그인 확인 → 로그인(필요 시)
+3. **다운로드** — `mj-download(account_name, download_dir)`: 로그인 확인 → 로그인(필요 시) → 오늘 이미지 zip 다운로드
 
 ## 3. 파일 구조
 ```
@@ -17,7 +18,8 @@ sessions/
   mj_{계정명}.json               # 로그인 세션 (쿠키, localStorage)
 skills/
   mj_pip_install/                # Playwright + Chromium 설치
-  mj_download/                   # 로그인 확인 + 로그인 + 다운로드
+  mj_login/                      # 로그인 확인 + 로그인
+  mj_download/                   # 오늘 이미지 다운로드
 ```
 
 각 스킬의 상세 사양은 해당 디렉토리의 `SKILL.md`를 참조한다.
