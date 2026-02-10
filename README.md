@@ -12,4 +12,6 @@
 codex exec --dangerously-bypass-approvals-and-sandbox "mj-login 스킬을 사용해서 미드저니에서 ace 계정으로 로그인해 줘"
 
 codex exec --dangerously-bypass-approvals-and-sandbox "mj-download 스킬을 사용해서 미드저니에서 ace 계정의 작업물을 다운로드해 줘"
+
+codex exec --dangerously-bypass-approvals-and-sandbox "upload-google-drive 스킬을 사용해서 미드저니 ace 계정의 작업물을 업로드해 줘"
 ```

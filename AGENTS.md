@@ -8,4 +8,5 @@
 - mj-pip-install: Playwright와 Chromium을 설치합니다. (file: skills/mj_pip_install/SKILL.md)
 - mj-login: 미드저니 로그인 상태 확인 및 로그인을 처리합니다. (file: skills/mj_login/SKILL.md)
 - mj-download: 미드저니 로그인 확인 → 로그인 → 오늘 이미지 zip 일괄 다운로드를 처리합니다. (file: skills/mj_download/SKILL.md)
+- upload-google-drive: 로컬 디렉토리의 파일을 구글 드라이브의 특정 디렉토리에 업로드합니다. 이미 동일한 파일이 있으면 건너뜁니다. (file: skills/upload_google_drive/SKILL.md)
 </INSTRUCTIONS>
