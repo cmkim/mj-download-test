@@ -10,19 +10,19 @@ from playwright.sync_api import sync_playwright
 _PROJECT_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
-DEFAULT_DOWNLOAD_DIR = os.path.join(_PROJECT_ROOT, "downloads", "MJ_Backups")
+DEFAULT_DOWNLOAD_DIR = os.path.join(_PROJECT_ROOT, "downloads", "mj")
 
 
-def _get_save_path(download_dir: str) -> str:
+def _get_save_path(download_dir: str, account_name: str) -> str:
     """날짜별 파일명 생성. 중복 시 (1), (2) 접미사 추가."""
     os.makedirs(download_dir, exist_ok=True)
     today = date.today().strftime("%Y%m%d")
-    base = os.path.join(download_dir, f"MJ_Backup_{today}.zip")
+    base = os.path.join(download_dir, f"mj_{account_name}_{today}.zip")
     if not os.path.exists(base):
         return base
     idx = 1
     while True:
-        path = os.path.join(download_dir, f"MJ_Backup_{today}({idx}).zip")
+        path = os.path.join(download_dir, f"mj_{account_name}_{today}({idx}).zip")
         if not os.path.exists(path):
             return path
         idx += 1
@@ -91,7 +91,7 @@ def download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR) -> boo
                 download_btn.click()
 
             dl = download_info.value
-            save_path = _get_save_path(download_dir)
+            save_path = _get_save_path(download_dir, account_name)
             dl.save_as(save_path)
             print(f"다운로드 완료: {save_path}")
             page.wait_for_timeout(3000)

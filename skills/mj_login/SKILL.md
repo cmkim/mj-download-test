@@ -6,7 +6,7 @@ description: 미드저니 로그인 상태를 확인하고, 필요 시 브라우
 # 미드저니 로그인
 
 ## 사전 조건
-- Playwright가 설치되어 있지 않으면: `mj-pip-install`을 먼저 실행하라고 안내 후 중단.
+- Playwright가 설치되어 있지 않으면: `art-repo-pip-install`을 먼저 실행하라고 안내 후 중단.
 
 ## 스크립트
 

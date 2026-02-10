@@ -101,7 +101,7 @@ def get_existing_filenames(service, folder_id):
     return names
 
 
-def upload_backup(local_backup_dir="MJ_Backups", drive_dir="mj"):
+def upload_backup(local_backup_dir="mj", drive_dir="mj"):
     """오늘 날짜가 포함된 백업 zip을 풀어서 yyyy-mm-dd/{drive_dir} 폴더에 업로드한다."""
     backup_dir = os.path.join(DOWNLOADS_DIR, local_backup_dir)
     today_compact = date.today().strftime("%Y%m%d")
@@ -156,6 +156,6 @@ def upload_backup(local_backup_dir="MJ_Backups", drive_dir="mj"):
 
 
 if __name__ == "__main__":
-    local_dir = sys.argv[1] if len(sys.argv) > 1 else "MJ_Backups"
+    local_dir = sys.argv[1] if len(sys.argv) > 1 else "mj"
     drive_dir = sys.argv[2] if len(sys.argv) > 2 else "mj"
     upload_backup(local_backup_dir=local_dir, drive_dir=drive_dir)

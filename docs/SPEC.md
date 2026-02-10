@@ -20,7 +20,7 @@
 
 ```
 skills/
-  mj_pip_install/          # 환경 설치 스킬
+  art_repo_pip_install/    # 환경 설치 스킬
     SKILL.md
     install.py
   mj_login/                # 로그인 확인 + 로그인 스킬
@@ -30,18 +30,21 @@ skills/
   mj_download/             # 미드저니 이미지 다운로드 스킬
     SKILL.md
     download.py
+  art_repo_upload/         # 아트 저장소 업로드 스킬
+    SKILL.md
+    upload.py
 ```
 
-### `mj-pip-install`
+### `art-repo-pip-install`
 
-Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스킬.
+Playwright, Chromium 브라우저, Google API 클라이언트 패키지를 설치하는 일회성 환경 설정 스킬.
 
 | 항목 | 내용 |
 |------|------|
-| 디렉토리 | `skills/mj_pip_install/` |
+| 디렉토리 | `skills/art_repo_pip_install/` |
 | 스크립트 | `install.py` |
-| 실행 흐름 | `main()` 호출 → pip install → playwright install chromium |
-| 완료 후 | `mj-download` 스킬로 이미지를 다운로드할 수 있다고 안내 |
+| 실행 흐름 | `main()` 호출 → pip install playwright → playwright install chromium → pip install google-api-python-client 등 |
+| 완료 후 | Playwright 기반 스킬을 사용할 수 있다고 안내 |
 
 ### `mj-login`
 
@@ -51,7 +54,7 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 |------|------|
 | 디렉토리 | `skills/mj_login/` |
 | 스크립트 | `check_login.py`, `login.py` |
-| 사전 조건 | Playwright 미설치 시 `mj-pip-install` 안내 후 중단 |
+| 사전 조건 | Playwright 미설치 시 `art-repo-pip-install` 안내 후 중단 |
 
 **실행 흐름**
 
@@ -72,7 +75,7 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 |------|------|
 | 디렉토리 | `skills/mj_download/` (로그인 스크립트는 `skills/mj_login/` 참조) |
 | 스크립트 | `mj_login/check_login.py`, `mj_login/login.py`, `download.py` |
-| 사전 조건 | Playwright 미설치 시 `mj-pip-install` 안내 후 중단 |
+| 사전 조건 | Playwright 미설치 시 `art-repo-pip-install` 안내 후 중단 |
 
 **실행 흐름**
 
@@ -85,11 +88,11 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 **파라미터**
 
 - `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
-- `download_dir` (str, 선택, 3단계만 해당): 다운로드 파일 저장 디렉토리. 기본값 `{_PROJECT_ROOT}/downloads/MJ_Backups`.
+- `download_dir` (str, 선택, 3단계만 해당): 다운로드 파일 저장 디렉토리. 기본값 `{_PROJECT_ROOT}/downloads/mj`.
 
 ## 스크립트
 
-### `skills/mj_pip_install/install.py`
+### `skills/art_repo_pip_install/install.py`
 
 환경 설치 스크립트. 최초 1회 실행.
 
@@ -97,7 +100,7 @@ Playwright와 Chromium 브라우저를 설치하는 일회성 환경 설정 스�
 |------|------|
 | 함수 | `main()` |
 | 파라미터 | 없음 |
-| 동작 | `pip install playwright` → `playwright install chromium` |
+| 동작 | `pip install playwright` → `playwright install chromium` → `pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib` |
 | 의존성 | `subprocess`, `sys` (표준 라이브러리만 사용) |
 
 ### `skills/mj_login/check_login.py`
@@ -133,10 +136,10 @@ Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그
 | 함수 | `download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR) -> bool` |
 | 세션 확인 | 세션 파일 존재 여부를 먼저 확인. 없으면 오류 메시지 출력 후 `False` 반환 |
 | 세션 로드 | `browser.new_context(storage_state=session_file)` 로 인증 상태 복원 |
-| 기본 다운로드 경로 | `{_PROJECT_ROOT}/downloads/MJ_Backups` |
-| 파일명 규칙 | `MJ_Backup_YYYYMMDD.zip`, 중복 시 `(1)`, `(2)` 접미사 |
+| 기본 다운로드 경로 | `{_PROJECT_ROOT}/downloads/mj` |
+| 파일명 규칙 | `mj_{account_name}_YYYYMMDD.zip`, 중복 시 `(1)`, `(2)` 접미사 |
 | 페이지 흐름 | `/organize` 접속 → "Today" `wait_for(state="visible")` (30초) → "Select all" → "Download" 클릭 |
 | 디버그 | "Today" 미발견 시 `debug_page.png` 스크린샷을 `download_dir`에 저장 |
 | 반환값 | 성공 시 `True`, 실패 시 `False` |
 | 에러 처리 | context 생성·페이지 조작·다운로드 전 과정을 try 블록으로 감싸며, `PlaywrightTimeout` — 시간 초과, `Exception` — 일반 오류. 콘솔 출력 후 `False` 반환 |
-| 내부 함수 | `_get_save_path(download_dir)` — 날짜별 파일명 생성 및 중복 처리 |
+| 내부 함수 | `_get_save_path(download_dir, account_name)` — 날짜별 파일명 생성 및 중복 처리 |

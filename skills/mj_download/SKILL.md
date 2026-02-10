@@ -6,7 +6,7 @@ description: 미드저니 오늘 생성한 이미지를 zip으로 일괄 다운�
 # 미드저니 작업물 다운로드
 
 ## 사전 조건
-- Playwright가 설치되어 있지 않으면: `mj-pip-install`을 먼저 실행하라고 안내 후 중단.
+- Playwright가 설치되어 있지 않으면: `art-repo-pip-install`을 먼저 실행하라고 안내 후 중단.
 
 ## 스크립트
 
@@ -45,15 +45,15 @@ result = login(account_name="mj_account")
 ```python
 from skills.mj_download.download import download
 
-result = download(account_name="mj_account", download_dir="./downloads/MJ_Backups")
-# download_dir 기본값: ./downloads/MJ_Backups
+result = download(account_name="mj_account", download_dir="./downloads/mj")
+# download_dir 기본값: ./downloads/mj
 # True: 다운로드 성공
 # False: 다운로드 실패 (세션 파일 없음, 오늘 이미지 없음, 시간 초과 등)
 ```
 
 ## 파라미터 (공통)
 - `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
-- `download_dir` (str, 선택, download만 해당): 다운로드 파일 저장 디렉토리. 기본값 `./downloads/MJ_Backups`.
+- `download_dir` (str, 선택, download만 해당): 다운로드 파일 저장 디렉토리. 기본값 `./downloads/mj`.
 
 ## 결과 보고
 각 단계의 콘솔 출력을 확인하여 사용자에게 전달한다.
