@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 # 설정 정보
-KEY_FILE_PATH = "ace-art-repo-1dae1bdefcf6.json"
+KEY_FILE_PATH = "ace-art-repo-secret.json"
 FOLDER_ID = "1kCbo5CXGcz60VTFVq0vySRexIHC47Fvc"
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
@@ -205,7 +205,9 @@ def test_upload_backup(local_backup_dir="mj", drive_dir="mj"):
                     print(f"  건너뜀 (이미 존재): {file_name}")
                     continue
 
-                mime_type = mimetypes.guess_type(file_name)[0] or "application/octet-stream"
+                mime_type = (
+                    mimetypes.guess_type(file_name)[0] or "application/octet-stream"
+                )
                 file_metadata = {"name": file_name, "parents": [target_folder_id]}
                 media = MediaFileUpload(file_path, mimetype=mime_type)
 

@@ -12,7 +12,7 @@ description: 미드저니, 나노바나나 등에서 다운로드한 작업물�
 
 ## 사전 조건
 - Google API 패키지가 설치되어 있지 않으면: `art-repo-pip-install`을 먼저 실행하라고 안내 후 중단.
-- 서비스 계정 키 파일(`ace-art-repo-*.json`)이 프로젝트 루트에 존재해야 한다.
+- 서비스 계정 키 파일(`ace-art-repo-secret.json`)이 프로젝트 루트에 존재해야 한다.
 
 ## 인자
 
