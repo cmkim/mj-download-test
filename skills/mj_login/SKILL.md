@@ -41,6 +41,7 @@ result = login(account_name="mj_account")
 
 ## 파라미터
 - `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
+  - 사용 가능한 계정: `ace`, `art`
 
 ## 결과 보고
 각 단계의 콘솔 출력을 확인하여 사용자에게 전달한다.
