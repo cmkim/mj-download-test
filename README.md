@@ -13,6 +13,12 @@
 ℹ️ 중간에 계속 실행할까요? 하고 물어볼 경우 엔터를 입력하면 넘어갑니다.
 
 
+## 윈도우에서 스케쥴 등록 테스트
+```
+$t=(Get-Date).AddMinutes(1); powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\ACE_ART_TEST\project\mj-download-test\windows\register-mj-download.ps1" -Hour $t.Hour -Minute $t.Minute
+```
+
+
 ## 프로젝트 최초 설치
 윈도우에서는 git bash 환경에서 실행합니다.
 1. nodejs 설치

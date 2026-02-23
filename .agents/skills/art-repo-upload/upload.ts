@@ -174,6 +174,7 @@ export async function uploadBackup(
           fields: 'id',
           supportsAllDrives: true,
         });
+        existingNames.add(fileName);
 
         console.log(`  업로드 완료: ${fileName} (ID: ${uploaded.data.id})`);
       }

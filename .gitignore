@@ -13,3 +13,6 @@ downloads/
 
 # OS
 .DS_Store
+
+# 테스트
+result.txt

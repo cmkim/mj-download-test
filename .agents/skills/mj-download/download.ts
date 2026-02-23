@@ -56,7 +56,7 @@ export async function download(
   }
 
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
     args: [
       '--disable-blink-features=AutomationControlled',
       '--disable-crashpad',
