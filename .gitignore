@@ -1,8 +1,15 @@
-__pycache__/
+# Dependencies
+node_modules/
 
-# 작업 디렉토리 제외
+# TypeScript 빌드 산출물
+dist/
+
+# 작업 디렉토리
 sessions/
 downloads/
 
-# 시크릿 정보 제외
-*.json
+# 시크릿 정보
+*secret*.json
+
+# OS
+.DS_Store

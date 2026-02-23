@@ -11,7 +11,7 @@ description: 미드저니, 나노바나나 등에서 다운로드한 작업물�
 로컬 디렉토리에 저장된 파일을 아트 저장소(구글 드라이브)의 지정된 디렉토리에 업로드하는 스킬이다.
 
 ## 사전 조건
-- Google API 패키지가 설치되어 있지 않으면: `art-repo-pip-install`을 먼저 실행하라고 안내 후 중단.
+- Google API 패키지가 설치되어 있지 않으면: `art-repo-package-install`을 먼저 실행하라고 안내 후 중단.
 - 서비스 계정 키 파일(`ace-art-repo-secret.json`)이 프로젝트 루트에 존재해야 한다.
 
 ## 인자
@@ -30,10 +30,17 @@ description: 미드저니, 나노바나나 등에서 다운로드한 작업물�
 
 ## 실행 방법
 
-스킬 디렉토리의 `upload.py`를 직접 호출한다:
+스킬 디렉토리의 `upload.ts`를 직접 호출한다:
 
 ```bash
-python3 skills/art_repo_upload/upload.py "$0" "$1"
+pnpm exec tsx .agents/skills/art-repo-upload/upload.ts "$0" "$1"
+# 샌드박스 환경(codex 인터랙티브)에서 IPC 소켓 오류 발생 시:
+node --import tsx/esm .agents/skills/art-repo-upload/upload.ts "$0" "$1"
+```
+
+또는 npm 스크립트 사용:
+```bash
+npm run art-repo-upload
 ```
 
 ## 동작 상세

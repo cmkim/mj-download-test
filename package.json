@@ -1,0 +1,28 @@
+{
+  "name": "midjourney-automation",
+  "version": "1.0.0",
+  "description": "미드저니 자동화 스킬 - TypeScript 버전",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "install-nodejs-22": "bash .agents/skills/install-nodejs-22/install.sh",
+    "mj-login": "tsx .agents/skills/mj-login/login.ts",
+    "mj-check-login": "tsx .agents/skills/mj-login/check_login.ts",
+    "mj-download": "tsx .agents/skills/mj-download/download.ts",
+    "art-repo-upload": "tsx .agents/skills/art-repo-upload/upload.ts",
+    "install-deps": "tsx .agents/skills/art-repo-package-install/install.ts"
+  },
+  "dependencies": {
+    "@types/node": "^22.10.5",
+    "adm-zip": "^0.5.16",
+    "googleapis": "^144.0.0",
+    "playwright": "^1.49.1"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

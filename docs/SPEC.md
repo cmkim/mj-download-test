@@ -1,49 +1,48 @@
 # 구현 명세
 
+> **문서 구성**: 이 파일은 *무엇을* 하는지(What)를 기술한다. 함수 시그니처, Chromium 실행 옵션 등 *어떻게* 구현하는지(How)는 [TECH_SPEC.md](TECH_SPEC.md)를 참조한다.
+
 ## 공통 사항
 
-- 런타임: Python 3, Playwright (sync API)
-- 브라우저: Chromium (`launch()` + `new_context()`)
-- 세션 관리: `storage_state` (JSON) — `sessions/mj_{account_name}.json`에 쿠키와 localStorage를 저장
-- 봇 감지 우회: `--disable-blink-features=AutomationControlled` (args) + `ignore_default_args=["--enable-automation"]` — Chromium 자동화 지표를 제거하여 Cloudflare 등 봇 탐지를 우회
-- User-Agent 오버라이드 (headless 전용): `new_context(user_agent=...)` 에 일반 브라우저 UA를 지정하여 `HeadlessChrome` 식별자 제거
-- Crashpad 비활성화: `--disable-crashpad`, `--disable-crash-reporter` — 크래시 리포터를 비활성화하여 macOS에서 "예기치 않게 종료되었습니다" 오류 대화상자가 표시되지 않도록 한다
-- GPU 비활성화: `--disable-gpu` — GPU 하위 프로세스가 macOS 윈도우 서버 등록(`_RegisterApplication`) 중 크래시하는 문제를 방지한다. 소프트웨어 렌더링으로 전환됨
-- `_PROJECT_ROOT`: 각 스크립트에서 `os.path.dirname()` 체인으로 프로젝트 루트를 계산 (스크립트 위치 → 스킬 디렉토리 → skills → 프로젝트 루트)
-- 조기 출력 방어: 함수 진입 직후 `print()` + `sys.stdout.flush()` 로 즉시 출력을 내보내, 호출 측(Codex 등)이 응답 없음으로 판단하여 프로세스를 조기 종료하는 것을 방지
-- 스킬 디렉토리 네이밍: 스킬 이름은 케밥 케이스(`mj-download`)이지만, 디렉토리명은 언더스코어(`mj_download`)를 사용한다. Python이 하이픈을 모듈명에 허용하지 않기 때문이며, SKILL.md의 `name` 필드와 `AGENTS.md`의 스킬 이름에서 케밥 케이스를 유지한다
-- 스킬 디렉토리 레이아웃: 스크립트 파일을 `scripts/` 하위 폴더에 분리하지 않고 SKILL.md와 같은 디렉토리에 배치한다. 스킬당 스크립트가 1~2개로 적어 별도 폴더의 이점이 없고, 플랫 구조가 `from skills.mj_login.check_login import check_login` 형태의 Python import를 간결하게 유지한다
+- 런타임: Node.js 22+, TypeScript, Playwright (async API)
+- 실행 방식: `pnpm exec tsx` (TypeScript 직접 실행, 컴파일 불필요)
+- 브라우저: Chromium (`chromium.launch()` + `browser.newContext()`)
+- 세션 관리: `storageState` (JSON) — `sessions/mj_{account_name}.json`에 쿠키와 localStorage를 저장
+- 스킬 디렉토리 네이밍: 스킬 이름과 디렉토리명 모두 케밥 케이스(`mj-download`)를 사용한다
 
 ## 스킬
 
 ### 디렉토리 구조
 
 ```
-skills/
-  art_repo_pip_install/    # 환경 설치 스킬
+.agents/skills/
+  install-nodejs-22/       # Node.js 22 + pnpm 설치 스킬
     SKILL.md
-    install.py
-  mj_login/                # 로그인 확인 + 로그인 스킬
+    install.sh
+  art-repo-package-install/    # 환경 설치 스킬
     SKILL.md
-    check_login.py
-    login.py
-  mj_download/             # 미드저니 이미지 다운로드 스킬
+    install.ts
+  mj-login/                # 로그인 확인 + 로그인 스킬
     SKILL.md
-    download.py
-  art_repo_upload/         # 아트 저장소 업로드 스킬
+    check_login.ts
+    login.ts
+  mj-download/             # 미드저니 이미지 다운로드 스킬
     SKILL.md
-    upload.py
+    download.ts
+  art-repo-upload/         # 아트 저장소 업로드 스킬
+    SKILL.md
+    upload.ts
 ```
 
-### `art-repo-pip-install`
+### `art-repo-package-install`
 
-Playwright, Chromium 브라우저, Google API 클라이언트 패키지를 설치하는 일회성 환경 설정 스킬.
+pnpm 패키지, Playwright, Chromium 브라우저를 설치하는 일회성 환경 설정 스킬.
 
 | 항목 | 내용 |
 |------|------|
-| 디렉토리 | `skills/art_repo_pip_install/` |
-| 스크립트 | `install.py` |
-| 실행 흐름 | `main()` 호출 → pip install playwright → playwright install chromium → pip install google-api-python-client 등 |
+| 디렉토리 | `.agents/skills/art-repo-package-install/` |
+| 스크립트 | `install.ts` |
+| 실행 흐름 | `main()` 호출 → pnpm install → pnpm exec playwright install chromium |
 | 완료 후 | Playwright 기반 스킬을 사용할 수 있다고 안내 |
 
 ### `mj-login`
@@ -52,94 +51,57 @@ Playwright, Chromium 브라우저, Google API 클라이언트 패키지를 설�
 
 | 항목 | 내용 |
 |------|------|
-| 디렉토리 | `skills/mj_login/` |
-| 스크립트 | `check_login.py`, `login.py` |
-| 사전 조건 | Playwright 미설치 시 `art-repo-pip-install` 안내 후 중단 |
+| 디렉토리 | `.agents/skills/mj-login/` |
+| 스크립트 | `check_login.ts`, `login.ts` |
+| 사전 조건 | Playwright 미설치 시 `art-repo-package-install` 안내 후 중단 |
 
 **실행 흐름**
 
 | 단계 | 스크립트 | 함수 호출 | 조건 |
 |------|----------|-----------|------|
-| 1 | `check_login.py` | `check_login(account_name)` | 항상 실행 |
-| 2 | `login.py` | `login(account_name)` | 1단계에서 `False`일 때만 |
+| 1 | `check_login.ts` | `checkLogin(account_name)` | 항상 실행 |
+| 2 | `login.ts` | `await login(account_name)` | 1단계에서 `false`일 때만 |
 
 **파라미터**
 
-- `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
+- `account_name` (string, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
 
 ### `mj-download`
 
-로그인 확인 → 로그인(필요 시) → 오늘 이미지 다운로드를 하나의 흐름으로 처리하는 스킬. `mj_login` 스킬의 스크립트와 자체 다운로드 스크립트를 순서대로 조합하여 목적을 달성한다.
+로그인 확인 → 로그인(필요 시) → 오늘 이미지 다운로드를 하나의 흐름으로 처리하는 스킬. `mj-login` 스킬의 스크립트와 자체 다운로드 스크립트를 순서대로 조합하여 목적을 달성한다.
 
 | 항목 | 내용 |
 |------|------|
-| 디렉토리 | `skills/mj_download/` (로그인 스크립트는 `skills/mj_login/` 참조) |
-| 스크립트 | `mj_login/check_login.py`, `mj_login/login.py`, `download.py` |
-| 사전 조건 | Playwright 미설치 시 `art-repo-pip-install` 안내 후 중단 |
+| 디렉토리 | `.agents/skills/mj-download/` |
+| 스크립트 | `download.ts` (로그인은 에이전트가 `mj-login` 스킬을 별도 호출) |
+| 사전 조건 | Playwright 미설치 시 `art-repo-package-install` 안내 후 중단 |
 
 **실행 흐름**
 
 | 단계 | 스크립트 | 함수 호출 | 조건 |
 |------|----------|-----------|------|
-| 1 | `mj_login/check_login.py` | `check_login(account_name)` | 항상 실행 |
-| 2 | `mj_login/login.py` | `login(account_name)` | 1단계에서 `False`일 때만. 실패 시 중단 |
-| 3 | `download.py` | `download(account_name, download_dir)` | 1~2단계 성공 시 실행 |
+| 1 | `mj-login/check_login.ts` | `checkLogin(account_name)` | 항상 실행 |
+| 2 | `mj-login/login.ts` | `await login(account_name)` | 1단계에서 `false`일 때만. 실패 시 중단 |
+| 3 | `download.ts` | `await download(account_name, download_dir)` | 1~2단계 성공 시 실행 |
 
 **파라미터**
 
-- `account_name` (str, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
-- `download_dir` (str, 선택, 3단계만 해당): 다운로드 파일 저장 디렉토리. 기본값 `{_PROJECT_ROOT}/downloads/mj`.
+- `account_name` (string, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
+- `download_dir` (string, 선택, 3단계만 해당): 다운로드 파일 저장 디렉토리. 기본값 `{PROJECT_ROOT}/downloads/mj`.
 
-## 스크립트
+### `art-repo-upload`
 
-### `skills/art_repo_pip_install/install.py`
-
-환경 설치 스크립트. 최초 1회 실행.
+로컬 `downloads/` 디렉토리의 오늘 날짜 zip 파일을 구글 드라이브 아트 저장소에 업로드하는 스킬.
 
 | 항목 | 내용 |
 |------|------|
-| 함수 | `main()` |
-| 파라미터 | 없음 |
-| 동작 | `pip install playwright` → `playwright install chromium` → `pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib` |
-| 의존성 | `subprocess`, `sys` (표준 라이브러리만 사용) |
+| 디렉토리 | `.agents/skills/art-repo-upload/` |
+| 스크립트 | `upload.ts` |
+| 사전 조건 | 서비스 계정 키 파일(`ace-art-repo-secret.json`)이 프로젝트 루트에 존재해야 함 |
 
-### `skills/mj_login/check_login.py`
+**파라미터**
 
-세션 JSON 파일에서 미드저니 인증 쿠키의 존재 여부와 유효성을 확인한다.
+- `local_dir` (string, 필수): 로컬 백업 디렉토리명 (`downloads/` 하위, 예: `mj`)
+- `drive_dir` (string, 필수): 구글 드라이브 대상 폴더명 (예: `mj`)
 
-| 항목 | 내용 |
-|------|------|
-| 함수 | `check_login(account_name: str) -> bool` |
-| 세션 파일 | `sessions/mj_{account_name}.json` |
-| 판단 기준 | `AuthUserToken`을 포함하는 쿠키가 존재하고 만료까지 24시간 이상 남아 있으면 `True` |
-| 만료 확인 | 쿠키의 `expires` 필드 (Unix 타임스탬프)와 현재 시간을 비교 |
-| 에러 처리 | 파일 미존재, JSON 파싱 오류 시 `False` 반환 |
-
-### `skills/mj_login/login.py`
-
-Chromium 브라우저를 열어 사용자가 수동으로 미드저니에 로그인하도록 한다. 로그인 후 세션을 JSON으로 저장한다.
-
-| 항목 | 내용 |
-|------|------|
-| 함수 | `login(account_name: str) -> bool` |
-| 동작 | `midjourney.com/home` 페이지를 열고, 로그인 완료 시 (`/explore` 페이지 이동 감지, 최대 2분) 세션 저장 및 브라우저 종료 |
-| 세션 저장 | `context.storage_state(path=...)` 로 쿠키와 localStorage를 JSON 파일에 저장 |
-| 반환값 | 성공 시 `True`, 실패 시 `False` |
-| 에러 처리 | `PlaywrightTimeout` — 시간 초과, `Exception` — 일반 오류. 콘솔 출력 후 `False` 반환 |
-
-### `skills/mj_download/download.py`
-
-미드저니 Organize 페이지에서 오늘 생성된 이미지를 zip으로 다운로드한다.
-
-| 항목 | 내용 |
-|------|------|
-| 함수 | `download(account_name: str, download_dir: str = DEFAULT_DOWNLOAD_DIR) -> bool` |
-| 세션 확인 | 세션 파일 존재 여부를 먼저 확인. 없으면 오류 메시지 출력 후 `False` 반환 |
-| 세션 로드 | `browser.new_context(storage_state=session_file)` 로 인증 상태 복원 |
-| 기본 다운로드 경로 | `{_PROJECT_ROOT}/downloads/mj` |
-| 파일명 규칙 | `mj_{account_name}_YYYYMMDD.zip`, 중복 시 `(1)`, `(2)` 접미사 |
-| 페이지 흐름 | `/organize` 접속 → "Today" `wait_for(state="visible")` (30초) → "Select all" → "Download" 클릭 |
-| 디버그 | "Today" 미발견 시 `debug_page.png` 스크린샷을 `download_dir`에 저장 |
-| 반환값 | 성공 시 `True`, 실패 시 `False` |
-| 에러 처리 | context 생성·페이지 조작·다운로드 전 과정을 try 블록으로 감싸며, `PlaywrightTimeout` — 시간 초과, `Exception` — 일반 오류. 콘솔 출력 후 `False` 반환 |
-| 내부 함수 | `_get_save_path(download_dir, account_name)` — 날짜별 파일명 생성 및 중복 처리 |
+세부 구현은 [TECH_SPEC.md](TECH_SPEC.md)를 참조한다.
