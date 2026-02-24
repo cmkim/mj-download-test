@@ -17,6 +17,20 @@ description: fnm, Node.js 22, pnpm을 설치하여 개발 환경을 구성합니
 - **Git Bash 필요** ([Git for Windows](https://gitforwindows.org/) 설치)
 - Git Bash는 Unix 명령어(curl, bash 등) 제공
 
+## Windows PowerShell UTF-8 설정
+- PowerShell에서 스킬을 실행할 때 UTF-8 인코딩을 강제한다.
+- 프로필에 아래 설정을 넣거나, 실행 스크립트에서 먼저 적용한다. (NoProfile 옵션은 사용하지 않는다)
+
+```powershell
+$utf8 = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = $utf8
+[Console]::InputEncoding = $utf8
+$OutputEncoding = $utf8
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+$PSDefaultParameterValues['Set-Content:Encoding'] = 'utf8'
+$PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
+```
+
 ## CLI 실행
 
 ### macOS/Linux

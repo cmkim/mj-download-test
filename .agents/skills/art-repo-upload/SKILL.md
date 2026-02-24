@@ -14,6 +14,20 @@ description: 미드저니, 나노바나나 등에서 다운로드한 작업물�
 - Google API 패키지가 설치되어 있지 않으면: `art-repo-package-install`을 먼저 실행하라고 안내 후 중단.
 - 서비스 계정 키 파일(`ace-art-repo-secret.json`)이 프로젝트 루트에 존재해야 한다.
 
+## Windows PowerShell UTF-8 설정
+- PowerShell에서 스킬을 실행할 때 UTF-8 인코딩을 강제한다.
+- 프로필에 아래 설정을 넣거나, 실행 스크립트에서 먼저 적용한다. (NoProfile 옵션은 사용하지 않는다)
+
+```powershell
+$utf8 = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = $utf8
+[Console]::InputEncoding = $utf8
+$OutputEncoding = $utf8
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+$PSDefaultParameterValues['Set-Content:Encoding'] = 'utf8'
+$PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
+```
+
 ## 인자
 
 - `$0` — 로컬 백업 디렉토리명 (`downloads/` 아래 하위 디렉토리, 예: `mj`)
