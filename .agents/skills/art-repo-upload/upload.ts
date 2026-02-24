@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..');
 const KEY_FILE_PATH = path.join(PROJECT_ROOT, 'ace-art-repo-secret.json');
-const FOLDER_ID = '1kCbo5CXGcz60VTFVq0vySRexIHC47Fvc';
+const FOLDER_ID = '1TVKblJrcQii4YHYMMons2bBokyGiClsH';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const DOWNLOADS_DIR = path.join(PROJECT_ROOT, 'downloads');
 
@@ -105,16 +105,16 @@ async function getExistingFilenames(
 }
 
 /**
- * 오늘 날짜가 포함된 백업 zip을 풀어서 yyyy-mm-dd/{driveDir} 폴더에 업로드한다.
+ * 오늘 날짜가 포함된 백업 zip을 풀어서 {driveDir}/yyyy/mm/dd 폴더에 업로드한다.
  */
 export async function uploadBackup(
-  localBackupDir: string = 'mj',
-  driveDir: string = 'mj'
+  localBackupDir: string = 'midj',
+  driveDir: string = 'midj'
 ): Promise<void> {
   const backupDir = path.join(DOWNLOADS_DIR, localBackupDir);
-  const today = new Date();
-  const todayCompact = today.toISOString().split('T')[0].replace(/-/g, '');
-  const todayISO = today.toISOString().split('T')[0];
+  const kst = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+  const todayCompact = kst.toISOString().split('T')[0].replace(/-/g, '');
+  const todayISO = kst.toISOString().split('T')[0];
 
   const zipFiles = fs
     .readdirSync(backupDir)
@@ -128,9 +128,12 @@ export async function uploadBackup(
 
   const service = getDriveService();
 
-  // yyyy-mm-dd/{driveDir} 폴더 확보
-  const dateFolderId = await findOrCreateFolder(service, todayISO, FOLDER_ID);
-  const targetFolderId = await findOrCreateFolder(service, driveDir, dateFolderId);
+  // {driveDir}/yyyy/mm/dd 폴더 확보
+  const [yyyy, mm, dd] = todayISO.split('-');
+  const driveDirFolderId = await findOrCreateFolder(service, driveDir, FOLDER_ID);
+  const yearFolderId = await findOrCreateFolder(service, yyyy, driveDirFolderId);
+  const monthFolderId = await findOrCreateFolder(service, mm, yearFolderId);
+  const targetFolderId = await findOrCreateFolder(service, dd, monthFolderId);
 
   // 이미 업로드된 파일 이름 조회
   const existingNames = await getExistingFilenames(service, targetFolderId);
@@ -139,7 +142,7 @@ export async function uploadBackup(
     console.log(`처리 중: ${path.basename(zipPath)}`);
 
     // 임시 디렉토리에 압축 해제
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mj-upload-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), `${localBackupDir}-upload-`));
     try {
       const zip = new AdmZip(zipPath);
       zip.extractAllTo(tmpDir, true);
@@ -189,8 +192,8 @@ export async function uploadBackup(
 
 // CLI에서 직접 실행할 경우
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const localDir = process.argv[2] || 'mj';
-  const driveDir = process.argv[3] || 'mj';
+  const localDir = process.argv[2] || 'midj';
+  const driveDir = process.argv[3] || 'midj';
   uploadBackup(localDir, driveDir).then(() => {
     console.log('업로드 작업 완료');
   }).catch((error) => {

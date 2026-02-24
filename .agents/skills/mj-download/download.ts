@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..');
-const DEFAULT_DOWNLOAD_DIR = path.join(PROJECT_ROOT, 'downloads', 'mj');
+const DEFAULT_DOWNLOAD_DIR = path.join(PROJECT_ROOT, 'downloads', 'midj');
 
 /**
  * 날짜별 파일명 생성. 중복 시 (1), (2) 접미사 추가.
@@ -21,7 +21,7 @@ function getSavePath(downloadDir: string, accountName: string): string {
     fs.mkdirSync(downloadDir, { recursive: true });
   }
 
-  const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  const today = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0].replace(/-/g, '');
   const base = path.join(downloadDir, `mj_${accountName}_${today}.zip`);
 
   if (!fs.existsSync(base)) {

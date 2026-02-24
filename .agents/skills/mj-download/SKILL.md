@@ -26,7 +26,7 @@ $PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
 
 | 스크립트 | 위치 | 역할 |
 |----------|------|------|
-| `check_login.ts` | `.agents/skills/mj-login/` | 세션 JSON의 인증 쿠키 유효성 확인 |
+| `check-login.ts` | `.agents/skills/mj-login/` | 세션 JSON의 인증 쿠키 유효성 확인 |
 | `login.ts` | `.agents/skills/mj-login/` | 브라우저를 열어 수동 로그인, 세션을 JSON으로 저장 |
 | `download.ts` | `.agents/skills/mj-download/` | 세션 JSON으로 인증하여 오늘 이미지를 zip으로 다운로드 |
 
@@ -35,7 +35,7 @@ $PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
 ### 1단계: 로그인 확인
 
 ```typescript
-import { checkLogin } from '../mj_login/check_login.js';
+import { checkLogin } from '../mj-login/check-login.js';
 
 const result = checkLogin("mj_account");
 // true: 로그인 정보 존재 → 3단계로 진행
@@ -44,15 +44,15 @@ const result = checkLogin("mj_account");
 
 또는 CLI 실행:
 ```bash
-pnpm exec tsx .agents/skills/mj-login/check_login.ts ace
+pnpm exec tsx .agents/skills/mj-login/check-login.ts ace
 # 샌드박스 환경(codex 인터랙티브)에서 IPC 소켓 오류 발생 시:
-node --import tsx/esm .agents/skills/mj-login/check_login.ts ace
+node --import tsx/esm .agents/skills/mj-login/check-login.ts ace
 ```
 
 ### 2단계: 로그인 (1단계에서 false일 때만)
 
 ```typescript
-import { login } from '../mj_login/login.js';
+import { login } from '../mj-login/login.js';
 
 const result = await login("mj_account");
 // 브라우저가 열린다. 사용자에게 디스코드 계정으로 로그인하라고 안내한다.
@@ -73,8 +73,8 @@ node --import tsx/esm .agents/skills/mj-login/login.ts ace
 ```typescript
 import { download } from './download.js';
 
-const result = await download("mj_account", "./downloads/mj");
-// download_dir 기본값: ./downloads/mj
+const result = await download("mj_account", "./downloads/midj");
+// download_dir 기본값: ./downloads/midj
 // true: 다운로드 성공
 // false: 다운로드 실패 (세션 파일 없음, 오늘 이미지 없음, 시간 초과 등)
 ```
@@ -88,7 +88,7 @@ node --import tsx/esm .agents/skills/mj-download/download.ts ace
 
 ## 파라미터 (공통)
 - `account_name` (string, 필수): 미드저니 계정명. 세션은 `sessions/mj_{account_name}.json`에 저장된다.
-- `download_dir` (string, 선택, download만 해당): 다운로드 파일 저장 디렉토리. 기본값 `./downloads/mj`.
+- `download_dir` (string, 선택, download만 해당): 다운로드 파일 저장 디렉토리. 기본값 `./downloads/midj`.
 
 ## 결과 보고
 각 단계의 콘솔 출력을 확인하여 사용자에게 전달한다.

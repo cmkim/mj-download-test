@@ -30,8 +30,8 @@ $PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
 
 ## 인자
 
-- `$0` — 로컬 백업 디렉토리명 (`downloads/` 아래 하위 디렉토리, 예: `mj`)
-- `$1` — 구글 드라이브 대상 폴더명 (예: `mj`)
+- `$0` — 로컬 백업 디렉토리명 (`downloads/` 아래 하위 디렉토리, 예: `midj`)
+- `$1` — 구글 드라이브 대상 폴더명 (예: `midj`)
 
 두 인자 모두 필수이다. 인자가 누락된 경우 아래 기본값 매핑을 참고하여 자동으로 추론한다. 추론할 수 없는 경우에만 사용자에게 물어본다.
 
@@ -39,8 +39,8 @@ $PSDefaultParameterValues['Add-Content:Encoding'] = 'utf8'
 
 | 키워드 (사용자 요청에 포함된 단어) | local_dir | drive_dir |
 |---|---|---|
-| 미드저니, midjourney, mj | mj | mj |
-| 나노바나나, nanobanana, nb | nb | nb |
+| 미드저니, midjourney, midj, mj | midj | midj |
+| 나노바나나, nanobanana, nanob, nb | nanob | nanob |
 
 ## 실행 방법
 
@@ -60,7 +60,7 @@ npm run art-repo-upload
 ## 동작 상세
 
 1. 로컬 디렉토리(`downloads/{local_dir}`)에서 오늘 날짜(`yyyymmdd`)가 포함된 zip 파일을 찾는다
-2. 구글 드라이브에 `yyyy-mm-dd/{drive_dir}` 폴더를 생성한다 (이미 존재하면 재사용)
+2. 구글 드라이브에 `{drive_dir}/yyyy/mm/dd` 폴더를 생성한다 (이미 존재하면 재사용)
 3. zip을 임시 디렉토리에 압축 해제한다
 4. 구글 드라이브 대상 폴더에 이미 같은 이름의 파일이 있으면 건너뛴다
 5. 새 파일만 업로드한다
@@ -76,6 +76,6 @@ npm run art-repo-upload
 ## 사용 예시
 
 ```
-/art-repo-upload mj mj
-/art-repo-upload nb nb
+/art-repo-upload midj midj
+/art-repo-upload nanob nanob
 ```
