@@ -1,0 +1,16 @@
+# 스케쥴 등록
+windows\register-mj-download.ps1 -Hour 13 -Minute 5 -TaskName mj-download-task-1
+windows\register-mj-download.ps1 -Hour 21 -Minute 5 -TaskName mj-download-task-2
+
+# 스케쥴 등록 확인
+Get-ScheduledTask -TaskName "mj-download-task-1","mj-download-task-2" | Select-Object TaskName,TaskPath,State,Triggers,Actions
+
+# 스케쥴 제거
+Unregister-ScheduledTask -TaskName "mj-download-task-1","mj-download-task-2"
+
+
+
+# 테스트용 명령어
+windows\register-mj-download.ps1 -Hour 17 -Minute 1 -TaskName mj-download-task
+Get-ScheduledTask -TaskName "mj-download-task"
+Unregister-ScheduledTask -TaskName "mj-download-task"
